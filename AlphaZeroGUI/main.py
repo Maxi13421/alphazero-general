@@ -633,6 +633,8 @@ class MainWindow(Ui_FormMainMenu):
                     str(ENVS_DIR / chosen_env / chosen_env).replace(os.sep, '.'), fromlist=['']
                 )
                 self.current_env_class = self.env_module.Game
+                self.train_args._num_players = (int)(self.current_env_class.num_players() + self.current_env_class.has_draw())
+                self.pit_args._num_players = (int)(self.current_env_class.num_players() + self.current_env_class.has_draw())
             except Exception as e:
                 show_dialog('Failed to load the selected training env: ' + str(e), self, error=True)
                 return

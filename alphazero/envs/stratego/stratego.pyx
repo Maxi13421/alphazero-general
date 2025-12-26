@@ -186,6 +186,10 @@ cdef class Game:  #(GameState):
         return Game(self._board.copy())
 
     @staticmethod
+    def has_draw():
+        return True
+
+    @staticmethod
     def num_players():
         return NUM_PLAYERS
 
