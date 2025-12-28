@@ -471,6 +471,10 @@ class Coach:
             if self.args.averageTrainSteps:
                 nonlocal num_train_steps
                 num_train_steps //= sample_counter
+            
+            print(f"train_steps calculation: len(dataset)={len(dataset)}, train_batch_size={self.args.train_batch_size}, "
+                  f"train_on_all={train_on_all}, num_train_steps={num_train_steps}, autoTrainSteps={self.args.autoTrainSteps}, "
+                  f"train_steps_per_iteration={self.args.train_steps_per_iteration}")
 
             train_steps = len(dataset) // self.args.train_batch_size \
                if train_on_all else (num_train_steps // self.args.train_batch_size
@@ -581,7 +585,7 @@ class Coach:
 
         players = [nnplayer] + [test_player] * (self.game_cls.num_players() - 1)
         self.arena = Arena(players, self.game_cls, use_batched_mcts=can_process, args=self.args)
-        wins, draws, winrates = self.arena.play_games(self.args.arenaCompare)
+        wins, draws, winrates = self.arena.play_games(self.args.arenaCompareBaseline if "arenaCompareBaseline" in self.args else self.args.arenaCompare)
         if self.stop_train.is_set(): return
         winrate = winrates[0]
 

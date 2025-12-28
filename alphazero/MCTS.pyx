@@ -136,7 +136,7 @@ cdef class MCTS:
         self.min_discount = args.min_discount
         self.fpu_reduction = args.fpu_reduction
         self.cpuct = args.cpuct
-        self._num_players = 3
+        self._num_players = args._num_players
         self._root = Node(-1, self._num_players)
         self._curnode = self._root
         self._path = []
@@ -191,6 +191,12 @@ cdef class MCTS:
             if c.a == a:
                 self._root = c
                 return
+        print("No moves?")
+        for column in gs._board.pieces:
+            for p in column:
+                print(p)
+            print()
+        print("end")
 
         raise ValueError(f'Invalid action encountered while updating root: {c.a}')
 

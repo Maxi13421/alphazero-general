@@ -13,4 +13,5 @@ checkpoint
 data
 runs
 .venv/
+.vscode
 *.pyc

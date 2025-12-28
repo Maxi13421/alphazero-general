@@ -103,6 +103,9 @@ class Progress(Infinite):
 
     @property
     def progress(self):
+        if self.max == 0:
+            print("Division by 0, because self.max in progress is 0")
+            return 0
         return min(1, self.index / self.max)
 
     @property

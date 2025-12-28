@@ -276,6 +276,19 @@ class GameBoardWidget(QtWidgets.QWidget):
 
         self.register_pixmap(name, pixmap)
 
+    def add_chesspiece_pixmap(self, name: str, piece_name: str, colour: QtCore.Qt.GlobalColor, line_width: int = 2) -> None:
+        pixmap = QtGui.QPixmap(self.cell_size, self.cell_size)
+        pixmap.fill(QtCore.Qt.transparent)
+
+        painter = QtGui.QPainter(pixmap)
+        painter.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.SmoothPixmapTransform)
+        painter.setPen(QtGui.QPen(QtCore.Qt.black, line_width, QtCore.Qt.SolidLine))
+        painter.setFont(QtGui.QFont("Helvetica [Cronyx]", pointSize= 40, weight=1))
+        painter.drawText(30,80, piece_name)
+        painter.end()
+
+        self.register_pixmap(name, pixmap)
+
     def add_filled_pixmap(self, name: str, colour: QtCore.Qt.GlobalColor) -> None:
         pixmap = QtGui.QPixmap(self.cell_size, self.cell_size)
         pixmap.fill(colour)
@@ -425,7 +438,7 @@ class GameWindow(QtWidgets.QWidget):
         game_board_kwargs['parent'] = self
         self.game_board = game_board or GameBoardWidget(*game_board_args, **game_board_kwargs)
         self.side_menu = side_menu or SideMenuWidget(self)
-        self.evaluator = evaluator or MCTSEvaluator(max_search_depth=12, max_search_time=10)
+        self.evaluator = (evaluator or MCTSEvaluator(max_search_depth=12, max_search_time=10)) if use_evaluator else None
         self.use_evaluator = use_evaluator
         self.verbose = verbose
         self.action_to_move = action_to_move

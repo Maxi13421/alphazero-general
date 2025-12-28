@@ -1,0 +1,3 @@
+pieces[x,y] is column first order?
+arena one always white?
+tuple[tuple[int,int],tuple[int, int]] to int[4]

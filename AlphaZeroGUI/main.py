@@ -16,7 +16,7 @@ from queue import Queue
 from functools import partial
 from pathlib import Path
 from typing import Callable
-
+from alphazero.envs.connect4.train import args as connect4args
 # Options for args eval
 from torch.optim import *
 from torch.optim.lr_scheduler import *
@@ -331,8 +331,7 @@ class MainWindow(Ui_FormMainMenu):
                 self.lblPitNumGames.setText(
                     f'Num. Turns: {self.arena.game_state.turns}/{self.arena.game_state.max_turns()}'
                 )
-
-            winrates = [round(p.winrate, 3) for p in self.arena.players]
+            winrates = []
             if any(winrates):
                 self.lblPitWinrates.setText(f'Win Rates: {winrates}')
             self.lblPitEpsTime.setText(f'Episode Time: {round(self.arena.eps_time, 3)}')
@@ -746,7 +745,7 @@ class MainWindow(Ui_FormMainMenu):
                     'Are you sure you want to load the default arguments into the editor?'
                     ' This will overwrite current changes.'
             ) == QMessageBox.No: return
-            init_table(DEFAULT_ARGS)
+            init_table(connect4args)
 
         def dialog_accepted():
             new_args = dotdict()

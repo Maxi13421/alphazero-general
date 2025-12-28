@@ -10,14 +10,14 @@ from alphazero.utils import dotdict
 
 args = get_args(dotdict({
     'run_name': 'connect4_fpu',
-    'workers': mp.cpu_count(),
+    'workers': mp.cpu_count() - 2,
     'startIter': 1,
     'numIters': 1000,
     'numWarmupIters': 1,
     'process_batch_size': 2048,
     'train_batch_size': 1024,
     # should preferably be a multiple of process_batch_size and workers
-    'gamesPerIteration': 2048 * mp.cpu_count(),
+    'gamesPerIteration': 2048 * mp.cpu_count() - 2,
     'symmetricSamples': True,
     'skipSelfPlayIters': None,
     'selfPlayModelIter': None,
