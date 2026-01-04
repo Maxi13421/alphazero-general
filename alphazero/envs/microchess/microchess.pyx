@@ -13,7 +13,7 @@ BOARD_HEIGHT = 5
 
 
 NUM_PLAYERS = 2
-MAX_TURNS = 60
+MAX_TURNS = 30
 MULTI_PLANE_OBSERVATION = True
 NUM_CHANNELS = 11 if MULTI_PLANE_OBSERVATION else 1
 
@@ -72,25 +72,19 @@ class Game(GameState):
     def observation_size() -> Tuple[int, int, int]:
         return NUM_CHANNELS, BOARD_WIDTH, BOARD_HEIGHT
 
-    def get_move(self, action : int) -> tuple[tuple[int, int], tuple[int, int]]:
-        cdef int new_x, new_y, old_x, old_y, remainder
-        remainder, new_x = divmod(action, BOARD_WIDTH)
-        remainder, new_y = divmod(remainder, BOARD_HEIGHT)
-        remainder, old_x = divmod(remainder, BOARD_WIDTH)
-        remainder, old_y = divmod(remainder, BOARD_HEIGHT)
-        return ((old_x, old_y),(new_x, new_y))
+    
 
     def valid_moves(self):
-        return np.asarray(self._board.get_valid_moves(self.player * -2 + 1))
+        return np.asarray(self._board.get_valid_moves())
 
     def play_action(self, action: int) -> None:
         super().play_action(action)
-        self._board.move(self.get_move(action))
+        self._board.move(action)
         self._update_turn()
 
     def win_state(self) -> np.ndarray:
         result = [False] * 3
-        game_over, player = self._board.get_win_state()
+        game_over, player = self._board.get_win_state(-2 * self.player + 1)
 
         if self._turns >= MAX_TURNS - 1:
             game_over = True
@@ -125,17 +119,37 @@ class Game(GameState):
         else:
             return np.expand_dims(np.asarray(self._board.pieces), axis=0)
 
-    #Not used
-    def symmetries(self, pi) -> List[Tuple[Any, int]]:
+    def get_action(self, old_x, old_y, new_x, new_y):
+        return (self.width * old_y + old_x) * self.width * self.height + (self.width * new_y + new_x)
+
+    #Not used, no symmetries when castling is possible or you want to focus on single starting position
+    def symmetries(self, pi : np.ndarray) -> List[Tuple['Game', np.ndarray]]:
         new_state = self.clone()
-        new_state._board.pieces = self._board.pieces[:, ::-1]
-        return [(self.clone(), pi), (new_state, pi[::-1])]
+        new_state._board.pieces = self._board.pieces[::-1, :]
+        cdef int a_l_l, a_l_r, a_r_l, a_r_r
+        cdef Py_ssize_t old_x, old_y, new_x, new_y
+        new_pi = np.empty_like(pi)
+        for old_x in range(BOARD_WIDTH // 2):
+            for old_y in range(BOARD_HEIGHT):
+                for new_x in range(BOARD_WIDTH // 2): #Assumes width is even
+                    for new_y in range(BOARD_HEIGHT):
+                        a_l_l = self.get_action(old_x, old_y, new_x, new_y)
+                        a_l_r = self.get_action(old_x, old_y, BOARD_WIDTH - 1 - new_x, new_y)
+                        a_r_l = self.get_action(BOARD_WIDTH - 1 - new_x, old_y, new_x, new_y)
+                        a_r_r = self.get_action(BOARD_WIDTH - 1 - new_x, old_y, BOARD_WIDTH - 1 - new_x, new_y)
+                        new_pi[a_l_l] = pi[a_r_r]
+                        new_pi[a_r_r] = pi[a_l_l]
+                        new_pi[a_l_r] = pi[a_r_l]
+                        new_pi[a_r_l] = pi[a_l_r]
+
+                
+        return [(self.clone(), pi), (new_state, new_pi)]
     
 
 
 def display(board, action=None):
     if action:
-        print(f'Action: {action}, Move: {action + 1}')
+        print(f'Action: {action}')
     print(" -----------------------")
     #print(' '.join(map(str, range(len(board[0])))))
     print(board)

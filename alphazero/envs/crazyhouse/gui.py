@@ -1,10 +1,12 @@
 import pyximport; pyximport.install()
 
-from AlphaZeroGUI.CustomGUI import CustomGUI, GameWindow, NUM_BEST_ACTIONS
-from alphazero.envs.microchess.microchess import Game
+from AlphaZeroGUI.CustomGUI import CustomGUI, GameWindow, NUM_BEST_ACTIONS, SideMenuWidget
+from alphazero.envs.crazyhouse.crazyhouse import Game
 from PySide2.QtCore import Qt
 
-EMPTY = 5
+KING_B = 12
+EMPTY = 6
+PLACABLE_PIECES = 5
 
 class GUI(CustomGUI):
 
@@ -13,7 +15,7 @@ class GUI(CustomGUI):
         _, self.width, self.height = Game.observation_size()
         self.window = GameWindow(
             self.width,
-            self.height,
+            self.height + 4,
             cell_size=100,
             title=self.title,
             # image_dir=str(Path(__file__).parent / 'img'),
@@ -32,16 +34,18 @@ class GUI(CustomGUI):
         self.board.add_circle_pixmap(1, Qt.black)
         self.board.add_circle_pixmap(2, Qt.white)
         
-        self.board.add_chesspiece_pixmap(5, "K", Qt.white)
-        self.board.add_chesspiece_pixmap(6, "P", Qt.white)
-        self.board.add_chesspiece_pixmap(7, "N", Qt.white)
-        self.board.add_chesspiece_pixmap(8, "B", Qt.white)
-        self.board.add_chesspiece_pixmap(9, "R", Qt.white)
-        self.board.add_chesspiece_pixmap(11, "r", Qt.black)
-        self.board.add_chesspiece_pixmap(12, "b", Qt.black)
-        self.board.add_chesspiece_pixmap(13, "n", Qt.black)
-        self.board.add_chesspiece_pixmap(14, "p", Qt.black)
-        self.board.add_chesspiece_pixmap(15, "k", Qt.black)
+        self.board.add_chesspiece_pixmap(5, "♔", Qt.white)
+        self.board.add_chesspiece_pixmap(6, "♙", Qt.white)
+        self.board.add_chesspiece_pixmap(7, "♘", Qt.white)
+        self.board.add_chesspiece_pixmap(8, "♗", Qt.white)
+        self.board.add_chesspiece_pixmap(9, "♖", Qt.white)
+        self.board.add_chesspiece_pixmap(10, "♕", Qt.white)
+        self.board.add_chesspiece_pixmap(12, "♛", Qt.black)
+        self.board.add_chesspiece_pixmap(13, "♜", Qt.black)
+        self.board.add_chesspiece_pixmap(14, "♝", Qt.black)
+        self.board.add_chesspiece_pixmap(15, "♞", Qt.black)
+        self.board.add_chesspiece_pixmap(16, "♟", Qt.black)
+        self.board.add_chesspiece_pixmap(17, "♚", Qt.black)
 
         self.update_state(self._state)
 
@@ -62,8 +66,17 @@ class GUI(CustomGUI):
     def get_action(self, move):
         return (self.width * move[0][1] + move[0][0]) * self.width * self.height + (self.width * move[1][1] + move[1][0])
     
-    def mirror_corrds_y(self, gui_board_pos):
-        return (gui_board_pos[0], self.height - 1 - gui_board_pos[1])
+    def get_board_pos_from_click_pos(self, gui_board_pos):
+        if(gui_board_pos[1] == self.height + 2 or gui_board_pos[1] <= 1):
+            return None
+        if(gui_board_pos[1] == self.height + 3):
+            return (gui_board_pos[0], self.height)
+        return (gui_board_pos[0], self.height + 1 - gui_board_pos[1])
+        
+    def get_gui_pos_from_board_coords(self, x, y, is_white = True):
+        if(y == self.height):
+            return (x, self.height + 3 if is_white else 0)
+        return (x, self.height + 1 - y)
 
 
     def _tile_click(self, x, y):
@@ -81,13 +94,16 @@ class GUI(CustomGUI):
         print("Player: {}".format(player))
 
         def highlight_legals(square):
+            if(square == None):
+                return False
+            
             legals = board.legal_moves(square[0], square[1])
             if not legals:
                 return False
 
             self.board.remove_highlights()
             for end_square in legals:
-                sq = self.mirror_corrds_y(end_square)
+                sq = self.get_gui_pos_from_board_coords(end_square[0], end_square[1])
                 self.board.highlight_tile(sq[0], sq[1])
 
             self.board.update()
@@ -100,21 +116,21 @@ class GUI(CustomGUI):
             self.board.update()
 
 
-        if self.board.last_selected_tile and self.board.selected_tile:
-            from_square = self.mirror_corrds_y(self.board.last_selected_tile)
-            to_square = self.mirror_corrds_y(self.board.selected_tile)
+        if self.board.last_selected_tile and self.board.selected_tile and self.get_board_pos_from_click_pos(self.board.last_selected_tile) != None and self.get_board_pos_from_click_pos(self.board.selected_tile) != None:
+            from_square = self.get_board_pos_from_click_pos(self.board.last_selected_tile)
+            to_square = self.get_board_pos_from_click_pos(self.board.selected_tile)
             move = (from_square, to_square)
             print('[DEBUG] Move: {}'.format(move))
         
         
-            if [to_square[0], to_square[1]] in board.legal_moves(from_square[0], from_square[1]):
+            if [move[1][0], move[1][1]] in board.legal_moves(move[0][0], move[0][1]):
                 action = self.get_action(move)
                 print('[DEBUG] Move is legal, action: {}'.format(action))
                 remove_selection()
                 self.on_player_move(action)
             
 
-        elif self.board.selected_tile and highlight_legals(self.mirror_corrds_y(self.board.selected_tile)):
+        elif self.board.selected_tile and highlight_legals(self.get_board_pos_from_click_pos(self.board.selected_tile)):
             print('[DEBUG] Legals highlighted')
             return
         else:
@@ -135,23 +151,25 @@ class GUI(CustomGUI):
     def update_state(self, state):
         for x in range(self.width):
             for y in range(self.height):
-                pos = self.mirror_corrds_y((x,y))
-                piece = state._board.pieces[pos[0], pos[1]]
+                pos = self.get_gui_pos_from_board_coords(x,y)
+                piece = state._board.pieces[x, y]
 
-                self.board.set_tile(x, y, piece + 5 if piece != EMPTY else None)
+                self.board.set_tile(pos[0], pos[1], piece + 5 if piece != EMPTY else None)
+
+        for x in range(PLACABLE_PIECES):
+            self.board.set_tile(x, 0, KING_B - x - 1 + 5 if state._board.piece_counts_black[x] > 0 else None)
+            
+        for x in range(PLACABLE_PIECES):
+            self.board.set_tile(x, self.height + 3, x + 1 + 5 if state._board.piece_counts_white[x] > 0 else None)
+
+        
 
         
         if state.last_action is not None:
-            # remove previous highlight
             self.board.remove_highlights()
-            # highlight the tile where the piece landed
-            for y in range(self.height):
-                move_dest = state._board.get_move(state.last_action)
-                move_dest = (move_dest[2],move_dest[3])
-                move_dest = self.mirror_corrds_y(move_dest)
-                if state._board.pieces[move_dest[0], move_dest[1]] != EMPTY:
-                    self.board.highlight_tile(move_dest[0], move_dest[1])
-                    break
+            move = state._board.get_move(state.last_action)
+            move_dest = (move[2],move[3] + 2)
+            self.board.highlight_tile(move_dest[0], move_dest[1])
 
         if state.win_state().any():
             self.user_input = False
