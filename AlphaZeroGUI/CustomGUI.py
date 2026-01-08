@@ -283,7 +283,7 @@ class GameBoardWidget(QtWidgets.QWidget):
         painter = QtGui.QPainter(pixmap)
         painter.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.SmoothPixmapTransform)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, line_width, QtCore.Qt.SolidLine))
-        painter.setFont(QtGui.QFont("Helvetica [Cronyx]", pointSize= 40, weight=1))
+        painter.setFont(QtGui.QFont("Merida", pointSize= 40, weight=1))
         painter.drawText(30,80, piece_name)
         painter.end()
 
