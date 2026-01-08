@@ -164,7 +164,8 @@ class Coach:
 
         if self.args.load_model:
             networks = sorted(glob(self.args.checkpoint + '/' + self.args.run_name + '/*'))
-            self.args.startIter = len(networks)
+            net_iters = [int(n.split("/iteration-")[-1].split(".pkl")[0]) for n in networks]
+            self.args.startIter = max(net_iters) + 1 if len(net_iters) > 0 else 0
             if self.args.startIter == 0:
                 self._save_model(self.train_net, 0)
                 self.args.startIter = 1
@@ -445,9 +446,9 @@ class Coach:
             )
             
             try:
-                data_tensor = torch.load(filename + '-data.pkl')
-                policy_tensor = torch.load(filename + '-policy.pkl')
-                value_tensor = torch.load(filename + '-value.pkl')
+                data_tensor = torch.load(filename + '-data.pkl', weights_only = False)
+                policy_tensor = torch.load(filename + '-policy.pkl', weights_only = False)
+                value_tensor = torch.load(filename + '-value.pkl', weights_only = False)
             except FileNotFoundError as e:
                 print('Warning: could not find tensor data. ' + str(e))
                 return

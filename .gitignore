@@ -8,10 +8,12 @@ game2dboard/__pycache__
 boardgame/__pycache__
 hnefatafl/__pycache__
 fastafl/__pycache__
+**/__pycache__
 .idea
 checkpoint
 data
 runs
-.venv/
+.venv*/
+venv*/
 .vscode
 *.pyc
