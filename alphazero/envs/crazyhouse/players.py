@@ -21,5 +21,9 @@ class HumanMicroChessPlayer(BasePlayer):
             else:
                 print('Invalid move')
         """
-        move = int(input())
+        input_move = [int(num) for num in input().split(" ")]
+        print(input_move)
+        move = state.get_action(*input_move)
+        print(move)
+        print(np.asarray(state._board.get_move(move)))
         return move

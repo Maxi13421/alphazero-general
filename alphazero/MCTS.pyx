@@ -191,12 +191,8 @@ cdef class MCTS:
             if c.a == a:
                 self._root = c
                 return
-        print("No moves?")
-        for column in gs._board.pieces:
-            for p in column:
-                print(p)
-            print()
-        print("end")
+                
+        print(gs._board)
 
         raise ValueError(f'Invalid action encountered while updating root: {c.a}')
 

@@ -17,3 +17,5 @@ runs
 venv*/
 .vscode
 *.pyc
+human_games/
+fairy-stockfish/

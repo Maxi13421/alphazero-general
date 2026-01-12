@@ -4,3 +4,10 @@ funktioniert batching bei selfplay?
 
 less workers for pitting?
 
+action space 73 planes of 8x8 square like lc0
+
+adam/adamw
+
+add king captures manually
+
+verbose list how often did each action get checked?

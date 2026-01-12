@@ -1,0 +1,105 @@
+10.000.000 samples MIN_AVG_RATING = 2200 MIN_TIME_CONTROL = 180 100 iterations, 100 batches
+{"run_name": "crazyhouse_lichess", "cuda": true, "workers": 10, "startIter": 0, "numIters": 1000, "process_batch_size": 512, "train_batch_size": 256, "arena_batch_size": 128, "train_steps_per_iteration": 6000, "train_sample_ratio": 1, "averageTrainSteps": false, "autoTrainSteps": false, "train_on_past_data": true, "past_data_chunk_size": 10, "past_data_run_name": "crazyhouse_lichess", "gamesPerIteration": 20480, "minTrainHistoryWindow": 4, "maxTrainHistoryWindow": 20, "trainHistoryIncrementIters": 4, "min_discount": 1, "fpu_reduction": 0.4, "num_stacked_observations": 8, "numWarmupIters": 1, "skipSelfPlayIters": null, "selfPlayModelIter": null, "symmetricSamples": false, "numMCTSSims": 200, "numFastSims": 40, "numWarmupSims": 5, "probFastSim": 0.75, "mctsResetThreshold": null, "startTemp": 1, "temp_scaling_fn": "__CALLABLE__default_temp_scaling", "root_policy_temp": 1.1, "root_noise_frac": 0.1, "add_root_noise": true, "add_root_temp": true, "compareWithBaseline": true, "baselineTester": "__CALLABLE__RawMCTSPlayer", "arenaCompareBaseline": 128, "arenaCompare": 1024, "arenaTemp": 1, "arenaMCTS": true, "arenaBatched": true, "baselineCompareFreq": 1, "compareWithPast": true, "pastCompareFreq": 1, "model_gating": true, "max_gating_iters": null, "min_next_model_winrate": 0.505, "use_draws_for_winrate": true, "load_model": true, "cpuct": 4, "value_loss_weight": 1.5, "checkpoint": "checkpoint", "data": "data", "scheduler": "__CALLABLE__MultiStepLR", "scheduler_args": {"milestones": [75, 150], "gamma": 0.1, "verbose" : true}, "lr": 0.01, "optimizer": "__CALLABLE__SGD", "optimizer_args": {"momentum": 0.9, "weight_decay": 0.0001}, "nnet_type": "resnet", "num_channels": 256, "depth": 12, "value_head_channels": 32, "policy_head_channels": 32, "input_fc_layers": [1024, 1024, 1024, 1024], "value_dense_layers": [1024, 256], "policy_dense_layers": [1024], "max_moves": 100}
+
+Loss_pi: 2.9772 | Loss_v: 0.946
+Loss_pi: 2.2131 | Loss_v: 0.897
+Loss_pi: 2.0665 | Loss_v: 0.894
+Loss_pi: 1.9480 | Loss_v: 0.877
+Loss_pi: 1.9125 | Loss_v: 0.873
+Loss_pi: 1.8579 | Loss_v: 0.862
+Loss_pi: 1.8231 | Loss_v: 0.848
+Loss_pi: 1.7970 | Loss_v: 0.835
+Loss_pi: 1.7624 | Loss_v: 0.832
+Loss_pi: 1.7498 | Loss_v: 0.827
+PITTING AGAINST BASELINE: RawMCTSPlayer
+Arena.play_games |################################| (128/128) Winrates: [0.892, 0.108] | Eps Time: 1.965s | Total: 0:04:34 | ETA: 0:00:00
+NEW/BASELINE WINS : 132 / 16 ; DRAWS : 0
+NEW MODEL WINRATE : 0.892
+
+PITTING AGAINST ITERATION 0
+Arena.play_games |################################| (1024/1024) Winrates: [0.832, 0.168] | Eps Time: 0.975s | Total: 0:16:53 | ETA: 0:00:00
+NEW/PAST WINS : 864 / 174 ; DRAWS : 0
+NEW MODEL WINRATE : 0.832
+
+
+
+{"run_name": "crazyhouse_lichess_adamw", "cuda": true, "workers": 10, "startIter": 0, "numIters": 1000, "process_batch_size": 512, "train_batch_size": 256, "arena_batch_size": 128, "train_steps_per_iteration": 6000, "train_sample_ratio": 1, "averageTrainSteps": false, "autoTrainSteps": false, "train_on_past_data": true, "past_data_chunk_size": 10, "past_data_run_name": "crazyhouse_lichess", "gamesPerIteration": 20480, "minTrainHistoryWindow": 4, "maxTrainHistoryWindow": 20, "trainHistoryIncrementIters": 4, "min_discount": 1, "fpu_reduction": 0.4, "num_stacked_observations": 8, "numWarmupIters": 1, "skipSelfPlayIters": null, "selfPlayModelIter": null, "symmetricSamples": false, "numMCTSSims": 200, "numFastSims": 40, "numWarmupSims": 5, "probFastSim": 0.75, "mctsResetThreshold": null, "startTemp": 1, "temp_scaling_fn": "__CALLABLE__default_temp_scaling", "root_policy_temp": 1.1, "root_noise_frac": 0.1, "add_root_noise": true, "add_root_temp": true, "compareWithBaseline": true, "baselineTester": "__CALLABLE__RawMCTSPlayer", "arenaCompareBaseline": 128, "arenaCompare": 1024, "arenaTemp": 1, "arenaMCTS": true, "arenaBatched": true, "baselineCompareFreq": 1, "compareWithPast": true, "pastCompareFreq": 1, "model_gating": true, "max_gating_iters": null, "min_next_model_winrate": 0.505, "use_draws_for_winrate": true, "load_model": true, "cpuct": 4, "value_loss_weight": 1.5, "checkpoint": "checkpoint", "data": "data", "scheduler": "__CALLABLE__MultiStepLR", "scheduler_args": {"milestones": [75, 150], "gamma": 0.1}, "lr": 0.01, "optimizer": "__CALLABLE__AdamW", "optimizer_args": {}, "nnet_type": "resnet", "num_channels": 256, "depth": 12, "value_head_channels": 32, "policy_head_channels": 32, "input_fc_layers": [1024, 1024, 1024, 1024], "value_dense_layers": [1024, 256], "policy_dense_layers": [1024], "max_moves": 100}
+
+------ITER 1------
+Training on past data from run "crazyhouse_lichess" in 10 chunks of 10 iterations (100 iterations in total).
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.01
+Training Net |################################| (3906/3906) Data: 0.080s | Batch: 0.126s | Total: 0:08:15 | ETA: 0:00:01 | Loss_pi: 11.7634 | Loss_v: 115.370
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.01
+Training Net |################################| (3906/3906) Data: 0.079s | Batch: 0.124s | Total: 0:08:10 | ETA: 0:00:01 | Loss_pi: 5.8231 | Loss_v: 7.417
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.01
+Training Net |################################| (3906/3906) Data: 0.082s | Batch: 0.127s | Total: 0:08:23 | ETA: 0:00:01 | Loss_pi: 11.8119 | Loss_v: 1.085
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.01
+Training Net |################################| (3906/3906) Data: 0.081s | Batch: 0.126s | Total: 0:08:18 | ETA: 0:00:01 | Loss_pi: 11.5868 | Loss_v: 1.071
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.01
+Training Net |#####                           | (708/3906) Data: 0.087s | Batch: 0.131s | Total: 0:01:36 | ETA: 0:07:19 | Loss_pi: 3.6349 | Loss_v: 1.089
+
+
+
+
+{"run_name": "crazyhouse_lichess_adamw", "cuda": true, "workers": 10, "startIter": 1, "numIters": 1000, "process_batch_size": 512, "train_batch_size": 256, "arena_batch_size": 128, "train_steps_per_iteration": 6000, "train_sample_ratio": 1, "averageTrainSteps": false, "autoTrainSteps": false, "train_on_past_data": true, "past_data_chunk_size": 10, "past_data_run_name": "crazyhouse_lichess", "gamesPerIteration": 20480, "minTrainHistoryWindow": 4, "maxTrainHistoryWindow": 20, "trainHistoryIncrementIters": 4, "min_discount": 1, "fpu_reduction": 0.4, "num_stacked_observations": 8, "numWarmupIters": 1, "skipSelfPlayIters": null, "selfPlayModelIter": 1, "symmetricSamples": false, "numMCTSSims": 200, "numFastSims": 40, "numWarmupSims": 5, "probFastSim": 0.75, "mctsResetThreshold": null, "startTemp": 1, "temp_scaling_fn": "__CALLABLE__default_temp_scaling", "root_policy_temp": 1.1, "root_noise_frac": 0.1, "add_root_noise": true, "add_root_temp": true, "compareWithBaseline": true, "baselineTester": "__CALLABLE__RawMCTSPlayer", "arenaCompareBaseline": 128, "arenaCompare": 1024, "arenaTemp": 1, "arenaMCTS": true, "arenaBatched": true, "baselineCompareFreq": 1, "compareWithPast": true, "pastCompareFreq": 1, "model_gating": true, "max_gating_iters": null, "min_next_model_winrate": 0.505, "use_draws_for_winrate": true, "load_model": true, "cpuct": 4, "value_loss_weight": 1.5, "checkpoint": "checkpoint", "data": "data", "scheduler": "__CALLABLE__MultiStepLR", "scheduler_args": {"milestones": [75, 150], "gamma": 0.1}, "lr": 0.001, "optimizer": "__CALLABLE__AdamW", "optimizer_args": {}, "nnet_type": "resnet", "num_channels": 256, "depth": 12, "value_head_channels": 32, "policy_head_channels": 32, "input_fc_layers": [1024, 1024, 1024, 1024], "value_dense_layers": [1024, 256], "policy_dense_layers": [1024], "max_moves": 100, "_num_players": 3}
+
+Training on past data from run "crazyhouse_lichess" in 10 chunks of 10 iterations (100 iterations in total).
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.001
+Training Net |################################| (3906/3906) Data: 0.080s | Batch: 0.125s | Total: 0:08:12 | ETA: 0:00:01 | Loss_pi: 3.3657 | Loss_v: 1.102
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.001
+Training Net |################################| (3906/3906) Data: 0.080s | Batch: 0.124s | Total: 0:08:11 | ETA: 0:00:01 | Loss_pi: 2.3469 | Loss_v: 0.966
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.001
+Training Net |################################| (3906/3906) Data: 0.080s | Batch: 0.124s | Total: 0:08:10 | ETA: 0:00:01 | Loss_pi: 2.1400 | Loss_v: 0.918
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.001
+Training Net |################################| (3906/3906) Data: 0.078s | Batch: 0.122s | Total: 0:08:02 | ETA: 0:00:01 | Loss_pi: 1.9853 | Loss_v: 0.891
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.001
+Training Net |################################| (3906/3906) Data: 0.078s | Batch: 0.122s | Total: 0:08:01 | ETA: 0:00:01 | Loss_pi: 1.9278 | Loss_v: 0.875
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.001
+Training Net |################################| (3906/3906) Data: 0.079s | Batch: 0.123s | Total: 0:08:07 | ETA: 0:00:01 | Loss_pi: 1.8627 | Loss_v: 0.853
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.001
+Training Net |################################| (3906/3906) Data: 0.078s | Batch: 0.122s | Total: 0:08:01 | ETA: 0:00:01 | Loss_pi: 1.8221 | Loss_v: 0.831
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.001
+Training Net |################################| (3906/3906) Data: 0.079s | Batch: 0.123s | Total: 0:08:04 | ETA: 0:00:01 | Loss_pi: 1.7924 | Loss_v: 0.814
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.001
+Training Net |################################| (3906/3906) Data: 0.078s | Batch: 0.122s | Total: 0:08:00 | ETA: 0:00:01 | Loss_pi: 1.7537 | Loss_v: 0.809
+
+train_steps calculation: len(dataset)=1000000, train_batch_size=256, train_on_all=True, num_train_steps=100000, autoTrainSteps=False, train_steps_per_iteration=6000
+Current LR: 0.001
+Training Net |################################| (3906/3906) Data: 0.079s | Batch: 0.122s | Total: 0:08:02 | ETA: 0:00:01 | Loss_pi: 1.7429 | Loss_v: 0.797
+
+PITTING AGAINST BASELINE: RawMCTSPlayer
+Arena.play_games |################################| (128/128) Winrates: [0.755, 0.245] | Eps Time: 1.905s | Total: 0:04:21 | ETA: 0:00:00
+NEW/BASELINE WINS : 117 / 38 ; DRAWS : 0
+
+NEW MODEL WINRATE : 0.755
+PITTING AGAINST ITERATION 0
+Arena.play_games |################################| (1024/1024) Winrates: [0.864, 0.136] | Eps Time: 0.903s | Total: 0:15:49 | ETA: 0:00:00
+NEW/PAST WINS : 909 / 143 ; DRAWS : 0
+
+NEW MODEL WINRATE : 0.864

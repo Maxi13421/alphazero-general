@@ -1,3 +1,4 @@
+import numpy as np
 import pyximport; pyximport.install()
 
 from AlphaZeroGUI.CustomGUI import CustomGUI, GameWindow, NUM_BEST_ACTIONS, SideMenuWidget
@@ -63,8 +64,6 @@ class GUI(CustomGUI):
 
         self.board.update()
 
-    def get_action(self, move):
-        return (self.width * move[0][1] + move[0][0]) * self.width * self.height + (self.width * move[1][1] + move[1][0])
     
     def get_board_pos_from_click_pos(self, gui_board_pos):
         if(gui_board_pos[1] == self.height + 2 or gui_board_pos[1] <= 1):
@@ -122,9 +121,10 @@ class GUI(CustomGUI):
             move = (from_square, to_square)
             print('[DEBUG] Move: {}'.format(move))
         
-        
-            if [move[1][0], move[1][1]] in board.legal_moves(move[0][0], move[0][1]):
-                action = self.get_action(move)
+            print(np.asarray(board.legal_moves(move[0][0], move[0][1])))
+            print([move[1][0], move[1][1], 0])
+            if [move[1][0], move[1][1], 0] in board.legal_moves(move[0][0], move[0][1]):
+                action = self._state.get_action(move[0][0], move[0][1], move[1][0], move[1][1], 0)
                 print('[DEBUG] Move is legal, action: {}'.format(action))
                 remove_selection()
                 self.on_player_move(action)

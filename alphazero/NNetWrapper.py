@@ -93,7 +93,7 @@ class NNetWrapper(BaseWrapper):
 
         self.scheduler = args.scheduler(self.optimizer, **args.scheduler_args)
         # self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, **args.scheduler_args)
-        self.verbose = args.scheduler_args.get('verbose')
+        self.verbose = True
 
         if args.cuda:
             self.nnet.cuda()
