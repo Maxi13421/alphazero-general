@@ -4,7 +4,7 @@
 from typing import List, Tuple, Any
 
 from alphazero.Game import GameState
-from alphazero.envs.crazyhouse.CrazyhouseLogic import Board
+from alphazero.envs.crazyhouse_leela_action_space.Crazyhouse_leela_action_spaceLogic import Board
 
 import numpy as np
 
@@ -23,7 +23,16 @@ PLACEABLE_PIECE_COUNT_PY = 5
 
 SQUARE_COUNT_PY = BOARD_WIDTH_PY * BOARD_HEIGHT_PY
 
-MOVE_PIECE_ACTION_SIZE_PY = BOARD_WIDTH_PY * BOARD_HEIGHT_PY * BOARD_WIDTH_PY * BOARD_HEIGHT_PY
+MAX_DISTANCE_PY = BOARD_WIDTH_PY - 1
+POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT_PY = 8 * MAX_DISTANCE_PY
+POSSIBLE_KNIGHT_MOVES_FROM_POSITION_COUNT_PY = 8
+
+MOVE_QUEEN_LIKE_ACTION_SIZE_PY = BOARD_WIDTH_PY * BOARD_HEIGHT_PY * POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT_PY
+MOVE_KNIGHT_LIKE_ACTION_SIZE_PY = BOARD_WIDTH_PY * BOARD_HEIGHT_PY * POSSIBLE_KNIGHT_MOVES_FROM_POSITION_COUNT_PY
+
+MOVE_KNIGHT_LIKE_OFFSET_PY = MOVE_QUEEN_LIKE_ACTION_SIZE_PY
+
+MOVE_PIECE_ACTION_SIZE_PY = MOVE_QUEEN_LIKE_ACTION_SIZE_PY + MOVE_KNIGHT_LIKE_ACTION_SIZE_PY
 PLACE_PAWN_ACTION_SIZE_PY = BOARD_WIDTH_PY * (BOARD_HEIGHT_PY - 2)
 PLACE_OTHER_PIECE_ACTION_SIZE_PY = BOARD_WIDTH_PY * BOARD_HEIGHT_PY * (PLACEABLE_PIECE_COUNT_PY - 1)
 PROMOTE_PAWN_CAPTURE_LEFT_ACTION_SIZE_PY = (BOARD_WIDTH_PY - 1) * (PLACEABLE_PIECE_COUNT_PY - 1)
@@ -202,20 +211,68 @@ class Game(GameState):
             return np.expand_dims(np.asarray(self._board.pieces), axis=0)
 
     def get_action(self, old_x, old_y, new_x, new_y, promotion = 0):
-        if(promotion == 0):
-            if(old_y < BOARD_HEIGHT_PY):
-                return (BOARD_WIDTH_PY * old_y + old_x) * SQUARE_COUNT_PY + (BOARD_WIDTH_PY * new_y + new_x)
+        if(promotion > 0):
+            idx = promotion - 2
+            delta_x = new_x - old_x
+            
+            if delta_x == -1: # capture left
+                return PROMOTE_PAWN_CAPTURE_LEFT_OFFSET_PY + (old_x - 1) * (PLACEABLE_PIECE_COUNT_PY - 1) + idx
+            elif delta_x == 0: # move forward
+                return PROMOTE_PAWN_MOVE_FORWARD_OFFSET_PY + old_x * (PLACEABLE_PIECE_COUNT_PY - 1) + idx
+            elif delta_x == 1: # capture right
+                return PROMOTE_PAWN_CAPTURE_RIGHT_OFFSET_PY + old_x * (PLACEABLE_PIECE_COUNT_PY - 1) + idx
+        
+        if old_y == BOARD_HEIGHT_PY: # Drop
+            piece_type = old_x
+            if piece_type == PAWN_W_PY:
+                return PLACE_PAWN_OFFSET_PY + (new_y - 1) * BOARD_WIDTH_PY + new_x
             else:
-                if(old_x == 1):
-                    return PLACE_PAWN_OFFSET_PY + (new_y - 1) * BOARD_WIDTH_PY + new_x
-                else:
-                    return PLACE_OTHER_PIECE_OFFSET_PY + (old_x - 2) * SQUARE_COUNT_PY + new_y * BOARD_WIDTH_PY + new_x
-        if new_x - old_x == -1:
-            return PROMOTE_PAWN_CAPTURE_LEFT_OFFSET_PY + new_x * (PLACEABLE_PIECE_COUNT_PY - 1) + (promotion - 2)
-        elif new_x - old_x == 0:
-            return PROMOTE_PAWN_MOVE_FORWARD_OFFSET_PY + old_x * (PLACEABLE_PIECE_COUNT_PY - 1) + (promotion - 2)
-        elif new_x - old_x == 1:
-            return PROMOTE_PAWN_CAPTURE_RIGHT_OFFSET_PY + old_x * (PLACEABLE_PIECE_COUNT_PY - 1) + (promotion - 2)
+                return PLACE_OTHER_PIECE_OFFSET_PY + (piece_type - 2) * SQUARE_COUNT_PY + new_y * BOARD_WIDTH_PY + new_x
+
+        # Move on board
+        delta_x = new_x - old_x
+        delta_y = new_y - old_y
+
+        # Check for Knight move
+        abs_dx = abs(delta_x)
+        abs_dy = abs(delta_y)
+        if (abs_dx == 1 and abs_dy == 2) or (abs_dx == 2 and abs_dy == 1):
+             knight_moves = [ (1,2), (2,1), (-1,2), (-2,1), (1,-2), (2,-1), (-1,-2), (-2,-1) ]
+             try:
+                 k_idx = knight_moves.index((delta_x, delta_y))
+                 return MOVE_KNIGHT_LIKE_OFFSET_PY + (old_y * BOARD_WIDTH_PY + old_x) * POSSIBLE_KNIGHT_MOVES_FROM_POSITION_COUNT_PY + k_idx
+             except ValueError:
+                 pass # Should not happen given if check
+        
+        # Queen move
+        direction_idx = -1
+        distance = 0
+        
+        # KING_MOVES = [0,1 , 1,1 , 1,0 , 1,-1 , 0,-1 ,  -1,-1 , -1,0 , -1,1 ]
+        # Directions: N, NE, E, SE, S, SW, W, NW
+        
+        if delta_x == 0:
+            if delta_y > 0: direction_idx = 0 # N
+            else: direction_idx = 4 # S
+            distance = abs(delta_y)
+        elif delta_y == 0:
+            if delta_x > 0: direction_idx = 2 # E
+            else: direction_idx = 6 # W
+            distance = abs(delta_x)
+        elif abs_dx == abs_dy:
+            distance = abs_dx
+            if delta_x > 0:
+                if delta_y > 0: direction_idx = 1 # NE
+                else: direction_idx = 3 # SE
+            else:
+                if delta_y > 0: direction_idx = 7 # NW
+                else: direction_idx = 5 # SW
+
+        if direction_idx != -1:
+             move_from_position = direction_idx * MAX_DISTANCE_PY + (distance - 1)
+             return (old_y * BOARD_WIDTH_PY + old_x) * POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT_PY + move_from_position
+        
+        raise ValueError(f"Cannot encode move: {old_x},{old_y} -> {new_x},{new_y}")
 
     #Not used, no symmetries when castling is possible or you want to focus on single starting position
     def symmetries(self, pi : np.ndarray) -> List[Tuple['Game', np.ndarray]]:

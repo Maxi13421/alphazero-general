@@ -193,8 +193,10 @@ cdef class MCTS:
                 return
                 
         print(gs._board)
-
-        raise ValueError(f'Invalid action encountered while updating root: {c.a}')
+        for c in self._root._children:
+            print(c.a, sep = " ")
+        print()
+        raise ValueError(f'Invalid action encountered while updating root: {a} {c.a}')
 
     cpdef void _add_root_noise(self):
         cdef int num_valid_moves = len(self._root._children)

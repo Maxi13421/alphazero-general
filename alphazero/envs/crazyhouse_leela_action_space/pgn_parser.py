@@ -12,8 +12,8 @@ from typing import List, Dict, Tuple, Optional
 
 from torch import Tensor
 import torch
-from alphazero.envs.crazyhouse.crazyhouse import Game
-from alphazero.envs.crazyhouse.crazyhouse import (
+from alphazero.envs.crazyhouse_leela_action_space.crazyhouse_leela_action_space import Game
+from alphazero.envs.crazyhouse_leela_action_space.crazyhouse_leela_action_space import (
     KING_W_PY, PAWN_W_PY, KNIGHT_W_PY, BISHOP_W_PY, 
     ROOK_W_PY, QUEEN_W_PY, EMPTY_PY, BOARD_WIDTH_PY, BOARD_HEIGHT_PY
 )
@@ -405,7 +405,7 @@ if __name__ == "__main__":
     parser = CrazyhousePGNParser()
     #parser.replay_game(pgn_example)
 
-    parser.save_game_data(Game(), "crazyhouse_lichess", "human_games/crazyhouse_lichess", 10, 100000)
+    parser.save_game_data(Game(), "crazyhouse_lichess_leela_action_space", "human_games/crazyhouse_lichess", 12, 100000)
 
     
 

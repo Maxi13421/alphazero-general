@@ -10,7 +10,7 @@ import chess.engine
 
 import atexit
 
-from alphazero.envs.crazyhouse.crazyhouse import (
+from alphazero.envs.crazyhouse_leela_action_space.crazyhouse_leela_action_space import (
     KING_W_PY, PAWN_W_PY, KNIGHT_W_PY, BISHOP_W_PY, 
     ROOK_W_PY, QUEEN_W_PY, EMPTY_PY, BOARD_WIDTH_PY, BOARD_HEIGHT_PY
 )

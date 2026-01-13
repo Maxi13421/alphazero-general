@@ -156,7 +156,6 @@ class MCTSPlayer(BasePlayer):
         action = np.random.choice(len(policy), p=policy)
         if self.verbose:
             print('confidence of action:', policy[action])
-
         return action
 
     def process(self, *args, **kwargs):

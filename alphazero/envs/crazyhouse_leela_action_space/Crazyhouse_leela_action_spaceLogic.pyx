@@ -17,13 +17,21 @@ cdef int PLACEABLE_PIECE_COUNT = 5
 
 cdef int SQUARE_COUNT = BOARD_HEIGHT * BOARD_WIDTH
 
-cdef int MOVE_PIECE_ACTION_SIZE = BOARD_WIDTH * BOARD_HEIGHT * BOARD_WIDTH * BOARD_HEIGHT
+cdef int MAX_DISTANCE = BOARD_WIDTH - 1 #Assumes squared board
+cdef int POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT = 8 * MAX_DISTANCE
+cdef int POSSIBLE_KNIGHT_MOVES_FROM_POSITION_COUNT = 8
+cdef int POSSIBLE_MOVES_FROM_POSITION_COUNT = POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT + POSSIBLE_KNIGHT_MOVES_FROM_POSITION_COUNT
+
+cdef int MOVE_QUEEN_LIKE_ACTION_SIZE = BOARD_WIDTH * BOARD_HEIGHT * POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT
+cdef int MOVE_KNIGHT_LIKE_ACTION_SIZE = BOARD_WIDTH * BOARD_HEIGHT * POSSIBLE_KNIGHT_MOVES_FROM_POSITION_COUNT
+cdef int MOVE_PIECE_ACTION_SIZE = BOARD_WIDTH * BOARD_HEIGHT * POSSIBLE_MOVES_FROM_POSITION_COUNT
 cdef int PLACE_PAWN_ACTION_SIZE = BOARD_WIDTH * (BOARD_HEIGHT - 2)
 cdef int PLACE_OTHER_PIECE_ACTION_SIZE = BOARD_WIDTH * BOARD_HEIGHT * (PLACEABLE_PIECE_COUNT - 1)
 cdef int PROMOTE_PAWN_CAPTURE_LEFT_ACTION_SIZE = (BOARD_WIDTH - 1) * (PLACEABLE_PIECE_COUNT - 1)
 cdef int PROMOTE_PAWN_MOVE_FORWARD_ACTION_SIZE = BOARD_WIDTH * (PLACEABLE_PIECE_COUNT - 1)
 cdef int PROMOTE_PAWN_CAPTURE_RIGHT_ACTION_SIZE = (BOARD_WIDTH - 1) * (PLACEABLE_PIECE_COUNT - 1)
 
+cdef int MOVE_KNIGHT_LIKE_OFFSET = MOVE_QUEEN_LIKE_ACTION_SIZE
 cdef int PLACE_PAWN_OFFSET = MOVE_PIECE_ACTION_SIZE
 cdef int PLACE_OTHER_PIECE_OFFSET = PLACE_PAWN_OFFSET + PLACE_PAWN_ACTION_SIZE
 cdef int PROMOTE_PAWN_CAPTURE_LEFT_OFFSET = PLACE_OTHER_PIECE_OFFSET + PLACE_OTHER_PIECE_ACTION_SIZE
@@ -151,14 +159,24 @@ cdef class Board():
     #if move[1] == BOARD_HEIGHT, move[0] is the piece that get's placed
     cpdef int[:] get_move(self, action : int):
         cdef int[:] move = np.empty(5, dtype=np.intc)  
+        cdef int move_from_position, distance
         move[4] = 0
         cdef int quotient
-        if(action < MOVE_PIECE_ACTION_SIZE): #normal move
-            quotient, move[2] = divmod(action, BOARD_WIDTH)
-            quotient, move[3] = divmod(quotient, BOARD_HEIGHT)
+        if(action < MOVE_QUEEN_LIKE_ACTION_SIZE): #normal move
+            quotient, move_from_position = divmod(action, POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT)
             move[1], move[0] = divmod(quotient, BOARD_WIDTH)
+            quotient, distance = divmod(move_from_position, MAX_DISTANCE)
+            move[2] = move[0] + KING_MOVES[quotient * 2] * (distance + 1)
+            move[3] = move[1] + KING_MOVES[quotient * 2 + 1] * (distance + 1)
             return move
-        action -= MOVE_PIECE_ACTION_SIZE
+        action -= MOVE_QUEEN_LIKE_ACTION_SIZE
+        if(action < MOVE_KNIGHT_LIKE_ACTION_SIZE): #normal move
+            quotient, move_from_position = divmod(action, POSSIBLE_KNIGHT_MOVES_FROM_POSITION_COUNT)
+            move[1], move[0] = divmod(quotient, BOARD_WIDTH)
+            move[2] = move[0] + KNIGHT_MOVES[move_from_position * 2]
+            move[3] = move[1] + KNIGHT_MOVES[move_from_position * 2 + 1]
+            return move
+        action -= MOVE_KNIGHT_LIKE_ACTION_SIZE
         if(action < PLACE_PAWN_ACTION_SIZE): #Place pawn
             quotient, move[2] = divmod(action, BOARD_WIDTH)
             quotient, move[3] = divmod(quotient, BOARD_HEIGHT)
@@ -404,28 +422,28 @@ cdef class Board():
         
 
     cdef void set_valid_pawn_moves(self, int[:] valid, int position_x, int position_y):
-        cdef int from_offset = (BOARD_WIDTH * position_y + position_x) * SQUARE_COUNT
+        cdef int from_offset = (BOARD_WIDTH * position_y + position_x) * POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT
         cdef Py_ssize_t i
         if self.pieces[position_x, position_y + 1] == EMPTY:
             if position_y == BOARD_HEIGHT - 2:
                 for i in range(PLACEABLE_PIECE_COUNT - 1):
                     valid[PROMOTE_PAWN_MOVE_FORWARD_OFFSET + position_x * (PLACEABLE_PIECE_COUNT - 1) + i] = 1
             else:
-                valid[from_offset + (position_y + 1) * BOARD_WIDTH + position_x] = 1
+                valid[from_offset + 0 * MAX_DISTANCE + (1 - 1)] = 1
                 if position_y == 1 and self.pieces[position_x, 3] == EMPTY:
-                    valid[from_offset + 3 * BOARD_WIDTH + position_x] = 1
+                    valid[from_offset + 0 * MAX_DISTANCE + (2 - 1)] = 1
         if position_x >= 1 and (self.pieces[position_x - 1, position_y + 1] - EMPTY) > 0:
             if position_y == BOARD_HEIGHT - 2:
                 for i in range(PLACEABLE_PIECE_COUNT - 1):
                     valid[PROMOTE_PAWN_CAPTURE_LEFT_OFFSET + (position_x - 1) * (PLACEABLE_PIECE_COUNT - 1) + i] = 1
             else:
-                valid[from_offset + (position_y + 1) * BOARD_WIDTH + position_x - 1] = 1
+                valid[from_offset + 7 * MAX_DISTANCE + (1 - 1)] = 1
         if position_x < BOARD_WIDTH - 1 and (self.pieces[position_x + 1, position_y + 1] - EMPTY) > 0:
             if position_y == BOARD_HEIGHT - 2:
                 for i in range(PLACEABLE_PIECE_COUNT - 1):
                     valid[PROMOTE_PAWN_CAPTURE_RIGHT_OFFSET + position_x * (PLACEABLE_PIECE_COUNT - 1) + i] = 1
             else:
-                valid[from_offset + (position_y + 1) * BOARD_WIDTH + position_x + 1] = 1
+                valid[from_offset + 1 * MAX_DISTANCE + (1 - 1)] = 1
 
         #En passant
         if position_y == BOARD_HEIGHT - 4 and position_x >= 1 and self.pieces[position_x - 1, position_y] == PAWN_B and \
@@ -433,48 +451,48 @@ cdef class Board():
             last_move = self.get_move(self.last_action)
             if last_move[0] == position_x - 1 and BOARD_HEIGHT - 1 - last_move[1] == position_y + 2 \
                     and last_move[2] == position_x - 1 and BOARD_HEIGHT - 1 - last_move[3] == position_y:
-                valid[from_offset + (position_y + 1) * BOARD_WIDTH + position_x - 1] = 1
+                valid[from_offset + 7 * MAX_DISTANCE + (1 - 1)] = 1
         if position_y == BOARD_HEIGHT - 4 and position_x < BOARD_WIDTH - 1 and self.pieces[position_x + 1, position_y] == PAWN_B and \
                     self.last_action != -1:
             last_move = self.get_move(self.last_action)
             if last_move[0] == position_x + 1 and BOARD_HEIGHT - 1 - last_move[1] == position_y + 2 \
                     and last_move[2] == position_x + 1 and BOARD_HEIGHT - 1 - last_move[3] == position_y:
-                valid[from_offset + (position_y + 1) * BOARD_WIDTH + position_x + 1] = 1
+                valid[from_offset + 1 * MAX_DISTANCE + (1 - 1)] = 1
         
 
     cdef void set_valid_king_moves(self, int[:] valid, int position_x, int position_y):
-        cdef int from_offset = (BOARD_WIDTH * position_y + position_x) * SQUARE_COUNT
+        cdef int from_offset = (BOARD_WIDTH * position_y + position_x) * POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT
         cdef int dest_x, dest_y
-        cdef Py_ssize_t move
-        for move in range(0,16,2):
-            dest_x = position_x + KING_MOVES[move]
-            dest_y = position_y + KING_MOVES[move+1]
+        cdef Py_ssize_t direction
+        for direction in range(8):
+            dest_x = position_x + KING_MOVES[2 * direction]
+            dest_y = position_y + KING_MOVES[2 * direction + 1]
             if dest_x >= BOARD_WIDTH or dest_x < 0 or dest_y >= BOARD_HEIGHT or dest_y < 0:
                 continue
             if (self.pieces[dest_x,dest_y] - EMPTY) >= 0:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + direction * MAX_DISTANCE + (1 - 1)] = 1
 
         if self.castling_rights[0] and self.pieces[1,0] == EMPTY and self.pieces[2,0] == EMPTY and self.pieces[3,0] == EMPTY \
             and not self.square_is_attacked_by_black(3,0) and not self.square_is_attacked_by_black(4,0):
-            valid[from_offset + 2] = 1
+            valid[from_offset + 6 * MAX_DISTANCE + (2 - 1)] = 1
 
         if self.castling_rights[1] and self.pieces[5,0] == EMPTY and self.pieces[6,0] == EMPTY \
             and not self.square_is_attacked_by_black(4,0) and not self.square_is_attacked_by_black(5,0):
-            valid[from_offset + 6] = 1
+            valid[from_offset + 2 * MAX_DISTANCE + (2 - 1)] = 1
 
 
 
     cdef void set_valid_knight_moves(self, int[:] valid, int position_x, int position_y):
-        cdef int from_offset = (BOARD_WIDTH * position_y + position_x) * SQUARE_COUNT
+        cdef int from_offset = MOVE_KNIGHT_LIKE_OFFSET + (BOARD_WIDTH * position_y + position_x) * POSSIBLE_KNIGHT_MOVES_FROM_POSITION_COUNT
         cdef int dest_x, dest_y
         cdef Py_ssize_t move
-        for move in range(0,16,2):
-            dest_x = position_x + KNIGHT_MOVES[move]
-            dest_y = position_y + KNIGHT_MOVES[move+1]
+        for move in range(8):
+            dest_x = position_x + KNIGHT_MOVES[2 * move]
+            dest_y = position_y + KNIGHT_MOVES[2 * move + 1]
             if dest_x >= BOARD_WIDTH or dest_x < 0 or dest_y >= BOARD_HEIGHT or dest_y < 0:
                 continue
             if self.pieces[dest_x,dest_y] - EMPTY >= 0:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + move] = 1
 
 
     cdef void set_valid_queen_moves(self, int[:] valid, int position_x, int position_y):
@@ -483,15 +501,15 @@ cdef class Board():
 
 
     cdef void set_valid_rook_moves(self, int[:] valid, int position_x, int position_y):
-        cdef int from_offset = (BOARD_WIDTH * position_y + position_x) * SQUARE_COUNT
+        cdef int from_offset = (BOARD_WIDTH * position_y + position_x) * POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT
         cdef int dest_x = position_x
         cdef int dest_y = position_y
         while(dest_x >= 1):
             dest_x -= 1
             if self.pieces[dest_x,dest_y] == EMPTY:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 6 * MAX_DISTANCE + position_x - dest_x - 1] = 1
             elif (self.pieces[dest_x,dest_y] - EMPTY) >= 0:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 6 * MAX_DISTANCE + position_x - dest_x - 1] = 1
                 break
             else:
                 break
@@ -501,9 +519,9 @@ cdef class Board():
         while(dest_x < BOARD_WIDTH - 1):
             dest_x += 1
             if self.pieces[dest_x,dest_y] == EMPTY:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 2 * MAX_DISTANCE + dest_x - position_x - 1] = 1
             elif (self.pieces[dest_x,dest_y] - EMPTY) >= 0:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 2 * MAX_DISTANCE + dest_x - position_x - 1] = 1
                 break
             else:
                 break
@@ -513,9 +531,9 @@ cdef class Board():
         while(dest_y >= 1):
             dest_y -= 1
             if self.pieces[dest_x,dest_y] == EMPTY:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 4 * MAX_DISTANCE + position_y - dest_y - 1] = 1
             elif (self.pieces[dest_x,dest_y] - EMPTY) >= 0:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 4 * MAX_DISTANCE + position_y - dest_y - 1] = 1
                 break
             else:
                 break
@@ -525,25 +543,25 @@ cdef class Board():
         while(dest_y < BOARD_HEIGHT - 1):
             dest_y += 1
             if self.pieces[dest_x,dest_y] == EMPTY:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 0 * MAX_DISTANCE + dest_y - position_y - 1] = 1
             elif (self.pieces[dest_x,dest_y] - EMPTY) >= 0:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 0 * MAX_DISTANCE + dest_y - position_y - 1] = 1
                 break
             else:
                 break
 
 
     cdef void set_valid_bishop_moves(self, int[:] valid, int position_x, int position_y):
-        cdef int from_offset = (BOARD_WIDTH * position_y + position_x) * SQUARE_COUNT
+        cdef int from_offset = (BOARD_WIDTH * position_y + position_x) * POSSIBLE_QUEEN_MOVES_FROM_POSITION_COUNT
         cdef int dest_x = position_x
         cdef int dest_y = position_y
         while(dest_x >= 1 and dest_y >= 1):
             dest_x -= 1
             dest_y -= 1
             if self.pieces[dest_x,dest_y] == EMPTY:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 5 * MAX_DISTANCE + position_x - dest_x - 1] = 1
             elif self.pieces[dest_x,dest_y] - EMPTY >= 0:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 5 * MAX_DISTANCE + position_x - dest_x - 1] = 1
                 break
             else:
                 break
@@ -554,9 +572,9 @@ cdef class Board():
             dest_x += 1
             dest_y -= 1
             if self.pieces[dest_x,dest_y] == EMPTY:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 3 * MAX_DISTANCE + dest_x - position_x - 1] = 1
             elif (self.pieces[dest_x,dest_y] - EMPTY) >= 0:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 3 * MAX_DISTANCE + dest_x - position_x - 1] = 1
                 break
             else:
                 break
@@ -567,9 +585,9 @@ cdef class Board():
             dest_x -= 1
             dest_y += 1
             if self.pieces[dest_x,dest_y] == EMPTY:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 7 * MAX_DISTANCE + position_x - dest_x - 1] = 1
             elif (self.pieces[dest_x,dest_y] - EMPTY) >= 0:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 7 * MAX_DISTANCE + position_x - dest_x - 1] = 1
                 break
             else:
                 break
@@ -580,14 +598,14 @@ cdef class Board():
             dest_x += 1
             dest_y += 1
             if self.pieces[dest_x,dest_y] == EMPTY:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 1 * MAX_DISTANCE + dest_x - position_x - 1] = 1
             elif (self.pieces[dest_x,dest_y] - EMPTY) >= 0:
-                valid[from_offset + dest_y * BOARD_WIDTH + dest_x] = 1
+                valid[from_offset + 1 * MAX_DISTANCE + dest_x - position_x - 1] = 1
                 break
             else:
                 break
 
-
+    #Doesn't necessarily work if a pawn gets tested as the function doesn't consider en passant
     cpdef int square_is_attacked_by_black(self, int position_x, int position_y):
         return self.square_is_attacked_by_black_pawn(position_x, position_y) or self.square_is_attacked_by_black_rook_or_queen(position_x, position_y) or \
             self.square_is_attacked_by_black_bishop_or_queen(position_x, position_y) or self.square_is_attacked_by_black_king(position_x, position_y) \
